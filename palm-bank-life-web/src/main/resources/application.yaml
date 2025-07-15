@@ -1,0 +1,18 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /palm/bank
+
+spring:
+  application:
+    name: palm-bank-life-web
+  datasource:
+    url: jdbc:mysql://localhost:3306/palm-bank?useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
