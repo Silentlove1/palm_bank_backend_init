@@ -7,20 +7,40 @@ spring:
   application:
     name: palm-bank-life-web
   datasource:
-    url: jdbc:mysql://localhost:3306/palm-bank?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/palm-bank?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-    redis:
-        redisson:
-          config: |
-            singleServerConfig:
-              address: "redis://localhost:6379"
-              database: 0
+  redis:
+    redisson:
+      config: |
+        singleServerConfig:
+          address: "redis://localhost:6379"
+          database: 0
+  # 解决Swagger路径匹配问题
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 
 mybatis:
-  mapper-locations: classpath:mapper/*.xml
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.life.bank.palm.dao
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-    map-underscore-to-camel-case: true  # 添加这行，支持下划线转驼峰
+    map-underscore-to-camel-case: true
+
+# Knife4j配置
+knife4j:
+  enable: true
+  production: false  # 开发环境设为false，生产环境设为true会关闭文档
+  basic:
+    enable: false    # 是否开启认证
+    username: admin
+    password: 123456
+
+# Springfox配置
+springfox:
+  documentation:
+    swagger-ui:
+      enabled: true
+      path: /doc.html
