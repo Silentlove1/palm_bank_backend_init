@@ -64,4 +64,57 @@ public class UserController {
         @Schema(description = "登录令牌")
         private String token;
     }
+
+    @Operation(summary = "密码登录")
+    @PostMapping("/login")
+    public CommonResponse<LoginResponse> login(@RequestBody LoginRequest request) {
+        String token = userLoginService.loginByPassword(
+                request.getPhone(),
+                request.getPassword()
+        );
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(token);
+        return CommonResponse.buildSuccess(response);
+    }
+
+    @Operation(summary = "验证码登录")
+    @PostMapping("/loginByCode")
+    public CommonResponse<LoginResponse> loginByCode(@RequestBody LoginByCodeRequest request) {
+        String token = userLoginService.loginByCode(
+                request.getPhone(),
+                request.getVerificationCode()
+        );
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(token);
+        return CommonResponse.buildSuccess(response);
+    }
+
+    @Data
+    @Schema(description = "密码登录请求")
+    public static class LoginRequest {
+        @Schema(description = "手机号", example = "13800138001")
+        private String phone;
+
+        @Schema(description = "密码", example = "12345678")
+        private String password;
+    }
+
+    @Data
+    @Schema(description = "验证码登录请求")
+    public static class LoginByCodeRequest {
+        @Schema(description = "手机号", example = "13800138001")
+        private String phone;
+
+        @Schema(description = "验证码", example = "1234")
+        private String verificationCode;
+    }
+
+    @Data
+    @Schema(description = "登录响应")
+    public static class LoginResponse {
+        @Schema(description = "登录令牌")
+        private String token;
+    }
 }

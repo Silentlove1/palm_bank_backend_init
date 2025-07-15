@@ -124,4 +124,53 @@ public class UserLoginService {
 
         return token;
     }
+
+    /**
+     * 密码登录
+     */
+    public String loginByPassword(String phone, String password) {
+        CheckUtil.Biz.INSTANCE
+                .strNotBlank(phone, "手机号不能为空")
+                .strNotBlank(password, "密码不能为空");
+
+        // 查询用户
+        UserPO user = userMapper.selectOneByPhoneAndIsDelete(phone, NumberUtils.INTEGER_ZERO);
+        CheckUtil.Biz.INSTANCE
+                .noNull(user, "用户不存在");
+
+        // 验证密码
+        String decryptPassword = AESEncryptUtil.decrypt(user.getPassword());
+        CheckUtil.Biz.INSTANCE
+                .isTrue(password.equals(decryptPassword), "密码错误");
+
+        // 生成token
+        return generateToken(user);
+    }
+
+    /**
+     * 验证码登录
+     */
+    public String loginByCode(String phone, String verificationCode) {
+        CheckUtil.Biz.INSTANCE
+                .strNotBlank(phone, "手机号不能为空")
+                .strNotBlank(verificationCode, "验证码不能为空");
+
+        // 验证验证码
+        RBucket<String> codeCache = redissonClient.getBucket(String.format(VERIFICATION_CODE_KEY, phone));
+        String code = codeCache.get();
+        CheckUtil.Biz.INSTANCE
+                .strNotBlank(code, "验证码已过期")
+                .isTrue(verificationCode.equals(code), "验证码不正确");
+
+        // 查询用户
+        UserPO user = userMapper.selectOneByPhoneAndIsDelete(phone, NumberUtils.INTEGER_ZERO);
+        CheckUtil.Biz.INSTANCE
+                .noNull(user, "用户不存在");
+
+        // 删除验证码
+        codeCache.delete();
+
+        // 生成token
+        return generateToken(user);
+    }
 }
