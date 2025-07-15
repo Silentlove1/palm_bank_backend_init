@@ -1,7 +1,10 @@
 package com.life.bank.palm.web.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +17,14 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("掌上AI银行 API文档")
                         .version("1.0")
-                        .description("掌上AI银行后端接口文档"));
+                        .description("掌上AI银行后端接口文档"))
+                .addSecurityItem(new SecurityRequirement().addList("Authorization"))
+                .components(new Components()
+                        .addSecuritySchemes("Authorization",
+                                new SecurityScheme()
+                                        .name("Authorization")
+                                        .type(SecurityScheme.Type.APIKEY)
+                                        .in(SecurityScheme.In.HEADER)
+                                        .description("请输入token")));
     }
 }

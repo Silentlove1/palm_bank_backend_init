@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>认证测试</title>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    button { padding: 10px; margin: 5px; }
+    #result { margin-top: 20px; background: #f0f0f0; padding: 10px; }
+  </style>
+</head>
+<body>
+<h2>掌上银行 - 认证测试</h2>
+
+<button onclick="login()">1. 登录获取Token</button>
+<button onclick="getUserInfo()">2. 获取用户信息</button>
+
+<div>Token: <span id="token">未登录</span></div>
+<div id="result"></div>
+
+<script>
+  let currentToken = '';
+
+  async function login() {
+    const response = await fetch('/palm/bank/user/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        phone: '13312345678',
+        password: '12345678'
+      })
+    });
+    const data = await response.json();
+    if (data.success) {
+      currentToken = data.data.token;
+      document.getElementById('token').innerText = currentToken;
+      document.getElementById('result').innerText = '登录成功！';
+    } else {
+      document.getElementById('result').innerText = '登录失败：' + data.msg;
+    }
+  }
+
+  async function getUserInfo() {
+    if (!currentToken) {
+      alert('请先登录！');
+      return;
+    }
+    const response = await fetch('/palm/bank/user/info', {
+      headers: {'Authorization': currentToken}
+    });
+    const data = await response.json();
+    document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+  }
+</script>
+</body>
+</html>

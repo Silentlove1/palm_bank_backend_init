@@ -12,4 +12,7 @@ public interface UserTokenMapper {
     int updateIsDeleteByUserIdAndPlatform(@Param("isDelete") Integer isDelete,
                                           @Param("userId") Integer userId,
                                           @Param("platform") Integer platform);
+
+    UserTokenPO selectOneByTokenAndIsDelete(@Param("token") String token,
+                                            @Param("isDelete") Integer isDelete);
 }

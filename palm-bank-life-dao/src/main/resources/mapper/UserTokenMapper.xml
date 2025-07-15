@@ -24,4 +24,12 @@
         set is_delete = #{isDelete}
         where user_id = #{userId} and platform = #{platform}
     </update>
+
+    <select id="selectOneByTokenAndIsDelete" resultType="com.life.bank.palm.dao.user.pojo.UserTokenPO">
+        select id, user_id, token, platform, expire_time, create_time, update_time, is_delete
+        from user_token
+        where token = #{token} and is_delete = #{isDelete}
+            limit 1
+    </select>
+
 </mapper>

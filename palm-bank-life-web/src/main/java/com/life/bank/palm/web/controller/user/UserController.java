@@ -1,6 +1,9 @@
 package com.life.bank.palm.web.controller.user;
 
+import com.life.bank.palm.common.context.UserContext;
 import com.life.bank.palm.common.result.CommonResponse;
+import com.life.bank.palm.dao.user.mapper.UserMapper;
+import com.life.bank.palm.dao.user.pojo.UserPO;
 import com.life.bank.palm.service.user.UserLoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -116,5 +119,59 @@ public class UserController {
     public static class LoginResponse {
         @Schema(description = "登录令牌")
         private String token;
+    }
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Operation(summary = "获取用户信息")
+    @GetMapping("/info")
+    public CommonResponse<UserInfoResponse> getUserInfo() {
+        Integer userId = UserContext.getUserId();
+        UserPO user = userMapper.selectOneByIdAndIsDelete(userId, 0);
+
+        UserInfoResponse response = new UserInfoResponse();
+        response.setUserId(user.getId());
+        response.setPhone(user.getPhone());
+        response.setNickname(user.getNickname());
+        response.setCardId(user.getCardId());
+        response.setBalance(user.getBalance());
+        response.setLogo(user.getLogo());
+        response.setGender(user.getGender());
+        response.setSchoolName(user.getSchoolName());
+        response.setEmail(user.getEmail());
+
+        return CommonResponse.buildSuccess(response);
+    }
+
+    @Data
+    @Schema(description = "用户信息响应")
+    public static class UserInfoResponse {
+        @Schema(description = "用户ID")
+        private Integer userId;
+
+        @Schema(description = "手机号")
+        private String phone;
+
+        @Schema(description = "昵称")
+        private String nickname;
+
+        @Schema(description = "银行卡号")
+        private String cardId;
+
+        @Schema(description = "余额")
+        private String balance;
+
+        @Schema(description = "头像")
+        private String logo;
+
+        @Schema(description = "性别：1-男，2-女")
+        private Integer gender;
+
+        @Schema(description = "学校名称")
+        private String schoolName;
+
+        @Schema(description = "邮箱")
+        private String email;
     }
 }
