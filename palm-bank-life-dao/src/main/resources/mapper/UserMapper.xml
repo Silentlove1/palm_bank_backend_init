@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.life.bank.palm.dao.user.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.life.bank.palm.dao.user.pojo.UserPO">
+        <id property="id" column="id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="schoolName" column="school_name"/>
+        <result property="gender" column="gender"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="logo" column="logo"/>
+        <result property="password" column="password"/>
+        <result property="cardId" column="card_id"/>
+        <result property="balance" column="balance"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isDelete" column="is_delete"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, nickname, school_name, gender, phone, email, logo, password,
+        card_id, balance, create_time, update_time, is_delete
+    </sql>
+
+    <select id="selectOneByPhoneAndIsDelete" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from user
+        where phone = #{phone} and is_delete = #{isDelete}
+    </select>
+
+    <insert id="insertSelective" parameterType="com.life.bank.palm.dao.user.pojo.UserPO"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="nickname != null">nickname,</if>
+            <if test="phone != null">phone,</if>
+            <if test="password != null">password,</if>
+            <if test="cardId != null">card_id,</if>
+            <if test="logo != null">logo,</if>
+            <if test="balance != null">balance,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="nickname != null">#{nickname},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="password != null">#{password},</if>
+            <if test="cardId != null">#{cardId},</if>
+            <if test="logo != null">#{logo},</if>
+            <if test="balance != null">#{balance},</if>
+        </trim>
+    </insert>
+
+    <select id="selectOneByIdAndIsDelete" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from user
+        where id = #{id} and is_delete = #{isDelete}
+    </select>
+</mapper>

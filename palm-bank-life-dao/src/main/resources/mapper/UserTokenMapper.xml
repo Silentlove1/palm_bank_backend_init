@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.life.bank.palm.dao.user.mapper.UserTokenMapper">
+
+    <insert id="insertSelective" parameterType="com.life.bank.palm.dao.user.pojo.UserTokenPO">
+        insert into user_token
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="token != null">token,</if>
+            <if test="platform != null">platform,</if>
+            <if test="expireTime != null">expire_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="token != null">#{token},</if>
+            <if test="platform != null">#{platform},</if>
+            <if test="expireTime != null">#{expireTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateIsDeleteByUserIdAndPlatform">
+        update user_token
+        set is_delete = #{isDelete}
+        where user_id = #{userId} and platform = #{platform}
+    </update>
+</mapper>
