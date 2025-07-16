@@ -14,4 +14,10 @@ public interface UserMapper {
 
     UserPO selectOneByIdAndIsDelete(@Param("id") Integer id,
                                     @Param("isDelete") Integer isDelete);
+
+    int updateBalanceById(@Param("balance") String balance,
+                          @Param("id") Integer id);
+
+    UserPO selectOneByCardIdAndIsDelete(@Param("cardId") String cardId,
+                                        @Param("isDelete") Integer isDelete);
 }

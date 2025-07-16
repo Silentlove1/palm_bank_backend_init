@@ -36,3 +36,40 @@ CREATE TABLE `user_token` (
                               KEY `idx_token` (`token`),
                               KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='登录token表';
+
+-- 交易记录表
+CREATE TABLE `trade_record` (
+                                `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                                `trade_id` varchar(64) DEFAULT NULL COMMENT '交易id（唯一）',
+                                `trade_type` tinyint(4) DEFAULT NULL COMMENT '交易类型：1-充值，2-提现，3-转账收入，4-转账支出',
+                                `trade_amount` varchar(32) DEFAULT NULL COMMENT '交易金额',
+                                `trade_balance` varchar(32) DEFAULT NULL COMMENT '交易后余额',
+                                `trade_channel` tinyint(4) DEFAULT NULL COMMENT '交易渠道：1-支付宝，2-微信，3-云闪付，4-银行转账',
+                                `trade_time` datetime DEFAULT NULL COMMENT '交易时间',
+                                `trade_status` tinyint(4) DEFAULT NULL COMMENT '交易状态：1-处理中，2-成功，3-失败',
+                                `trade_desc` varchar(256) DEFAULT NULL COMMENT '交易描述',
+                                `target_user_id` int(11) DEFAULT NULL COMMENT '目标用户id（转账时使用）',
+                                `target_card_id` varchar(32) DEFAULT NULL COMMENT '目标银行卡号（转账时使用）',
+                                `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                                PRIMARY KEY (`id`),
+                                UNIQUE KEY `uk_trade_id` (`trade_id`),
+                                KEY `idx_user_id` (`user_id`),
+                                KEY `idx_trade_time` (`trade_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易记录表';
+
+-- 交易防重表（防止重复提交）
+CREATE TABLE `trade_token` (
+                               `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                               `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                               `token` varchar(64) DEFAULT NULL COMMENT 'token',
+                               `trade_type` varchar(32) DEFAULT NULL COMMENT '交易类型',
+                               `expire_time` datetime DEFAULT NULL COMMENT '过期时间',
+                               `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                               `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                               PRIMARY KEY (`id`),
+                               UNIQUE KEY `uk_token` (`token`),
+                               KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易防重表';
