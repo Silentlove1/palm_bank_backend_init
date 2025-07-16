@@ -7,9 +7,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 
 import javax.servlet.http.HttpServletRequest;
 
+//@ControllerAdvice
+//@Slf4j
+//public class GlobalExceptionHandler {
+//
+//    @ExceptionHandler(value = CommonBizException.class)
+//    @ResponseBody
+//    public CommonResponse<Object> bizExceptionHandler(HttpServletRequest req, CommonBizException e) {
+//        log.warn("业务异常：{}", e.getMessage());
+//        return CommonResponse.buildError(e.getErrorCode(), e.getErrorMsg());
+//    }
+//
+//    @ExceptionHandler(value = Exception.class)
+//    @ResponseBody
+//    public CommonResponse<Object> exceptionHandler(HttpServletRequest req, Exception e) {
+//        log.error("系统异常：", e);
+//        return CommonResponse.buildError(BaseBizCodeEnum.SYSTEM_ERROR);
+//    }
+//
+//
+//}
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -24,6 +45,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
     public CommonResponse<Object> exceptionHandler(HttpServletRequest req, Exception e) {
+        // 排除SSE相关的异常
+        if (e instanceof AsyncRequestTimeoutException) {
+            log.warn("SSE请求超时");
+            return null; // 让Spring默认处理
+        }
+
         log.error("系统异常：", e);
         return CommonResponse.buildError(BaseBizCodeEnum.SYSTEM_ERROR);
     }

@@ -24,6 +24,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/user/login",
                         "/user/loginByCode",
                         "/test/**",
+                        // 添加AI相关的排除路径
+                        "/ai/sse/**",  // 排除SSE接口
                         // 排除Swagger相关
                         "/swagger-ui/**",
                         "/swagger-ui.html",

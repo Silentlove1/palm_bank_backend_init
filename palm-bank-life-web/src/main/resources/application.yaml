@@ -44,3 +44,21 @@ springfox:
     swagger-ui:
       enabled: true
       path: /doc.html
+
+# AI配置
+#ai:
+#  deepseek:
+#    api-key: sk-567887f5f72c482ea30b729e55a5b13c  # 实际使用时替换为真实的API Key
+#    api-url: https://api.deepseek.com/v1/chat/completions
+#    model: deepseek-chat
+#    temperature: 0.7
+#    max-tokens: 2048
+
+ai:
+  openai:
+    api-key: "sk-567887f5f72c482ea30b729e55a5b13c" # 安全起见，从系统环境变量读取
+    base-url: https://api.deepseek.com/v1
+    chat:
+      options:
+        model: deepseek-chat
+        temperature: 0.5

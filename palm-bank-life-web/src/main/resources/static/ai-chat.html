@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI智能客服</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .user-message {
+            background-color: #e3f2fd;
+            text-align: right;
+        }
+
+        .ai-message {
+            background-color: #fff;
+            border: 1px solid #ddd;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        #questionInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1565c0;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .faq {
+            margin-top: 20px;
+        }
+
+        .faq-item {
+            padding: 5px 10px;
+            margin: 5px 0;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .faq-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        .typing {
+            display: inline-block;
+            width: 20px;
+            height: 10px;
+            background: linear-gradient(90deg, #666 0%, #666 33%, #ccc 33%, #ccc 66%, #666 66%);
+            background-size: 300% 100%;
+            animation: typing 1s infinite;
+        }
+
+        @keyframes typing {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 0%; }
+        }
+    </style>
+</head>
+<body>
+<h1>AI智能客服</h1>
+
+<div class="chat-container" id="chatContainer">
+    <div class="message ai-message">
+        您好！我是掌上银行的智能客服助手，请问有什么可以帮助您的吗？
+    </div>
+</div>
+
+<div class="input-container">
+    <input type="text" id="questionInput" placeholder="请输入您的问题..." />
+    <button onclick="sendQuestion()" id="sendBtn">发送</button>
+</div>
+
+<div class="faq">
+    <h3>常见问题</h3>
+    <div id="faqList"></div>
+</div>
+
+<script>
+    let token = localStorage.getItem('token') || '';
+    let isProcessing = false;
+
+    // 加载常见问题
+    async function loadFaq() {
+        try {
+            const response = await fetch('/palm/bank/ai/faq', {
+                headers: {'Authorization': token}
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                const faqList = document.getElementById('faqList');
+                data.data.questions.forEach(question => {
+                    const item = document.createElement('div');
+                    item.className = 'faq-item';
+                    item.textContent = question;
+                    item.onclick = () => {
+                        document.getElementById('questionInput').value = question;
+                        sendQuestion();
+                    };
+                    faqList.appendChild(item);
+                });
+            }
+        } catch (e) {
+            console.error('加载常见问题失败', e);
+        }
+    }
+
+    // 发送问题
+    async function sendQuestion() {
+        if (isProcessing) return;
+
+        const input = document.getElementById('questionInput');
+        const question = input.value.trim();
+
+        if (!question) {
+            alert('请输入问题');
+            return;
+        }
+
+        isProcessing = true;
+        document.getElementById('sendBtn').disabled = true;
+
+        // 显示用户消息
+        addMessage(question, 'user');
+        input.value = '';
+
+        try {
+            // 创建对话
+            const response = await fetch('/palm/bank/ai/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({question: question})
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // 创建AI消息容器
+                const aiMessageDiv = addMessage('', 'ai');
+                const contentSpan = document.createElement('span');
+                aiMessageDiv.appendChild(contentSpan);
+
+                // 连接SSE
+                const eventSource = new EventSource('/palm/bank/ai/sse/' + data.data.sessionId);
+
+                eventSource.onmessage = (event) => {
+                    const streamData = JSON.parse(event.data);
+
+                    if (streamData.finished) {
+                        eventSource.close();
+                        isProcessing = false;
+                        document.getElementById('sendBtn').disabled = false;
+                    } else {
+                        contentSpan.textContent += streamData.content;
+                        scrollToBottom();
+                    }
+                };
+
+                eventSource.onerror = (error) => {
+                    console.error('SSE错误', error);
+                    eventSource.close();
+                    isProcessing = false;
+                    document.getElementById('sendBtn').disabled = false;
+
+                    if (contentSpan.textContent === '') {
+                        contentSpan.textContent = '抱歉，连接出现问题，请重试。';
+                    }
+                };
+            } else {
+                addMessage('发送失败：' + data.msg, 'ai');
+                isProcessing = false;
+                document.getElementById('sendBtn').disabled = false;
+            }
+        } catch (e) {
+            console.error('发送问题失败', e);
+            addMessage('网络错误，请稍后重试', 'ai');
+            isProcessing = false;
+            document.getElementById('sendBtn').disabled = false;
+        }
+    }
+
+    // 添加消息
+    function addMessage(content, type) {
+        const chatContainer = document.getElementById('chatContainer');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}-message`;
+        messageDiv.textContent = content;
+        chatContainer.appendChild(messageDiv);
+        scrollToBottom();
+        return messageDiv;
+    }
+
+    // 滚动到底部
+    function scrollToBottom() {
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // 回车发送
+    document.getElementById('questionInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !isProcessing) {
+            sendQuestion();
+        }
+    });
+
+    // 加载页面
+    loadFaq();
+</script>
+</body>
+</html>
