@@ -4,7 +4,9 @@ import com.life.bank.palm.common.context.UserContext;
 import com.life.bank.palm.common.exception.CommonBizException;
 import com.life.bank.palm.common.utils.CheckUtil;
 import com.life.bank.palm.common.utils.SnowflakeIdGenerator;
+import com.life.bank.palm.dao.trade.mapper.TradeBoardMapper;
 import com.life.bank.palm.dao.trade.mapper.TradeRecordMapper;
+import com.life.bank.palm.dao.trade.pojo.TradeBoardPO;
 import com.life.bank.palm.dao.trade.pojo.TradeRecordPO;
 import com.life.bank.palm.dao.user.mapper.UserMapper;
 import com.life.bank.palm.dao.user.pojo.UserPO;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.text.SimpleDateFormat;
 
 @Slf4j
 @Service
@@ -128,6 +131,10 @@ public class TradeService {
 
             log.info("转账成功：{} -> {}, 金额：{}", fromUser.getCardId(), targetCardId, amount);
 
+            // 在transfer方法的最后添加
+            updateTradeBoard(fromUser.getId(), 4, transferAmount); // 转出
+            updateTradeBoard(toUser.getId(), 3, transferAmount);   // 转入
+
             return tradeId;
 
         } catch (InterruptedException e) {
@@ -137,6 +144,7 @@ public class TradeService {
                 lock.unlock();
             }
         }
+
     }
 
     /**
@@ -194,6 +202,9 @@ public class TradeService {
 
             log.info("充值成功：用户{}，金额：{}，渠道：{}", userId, amount, channel);
 
+            // 在recharge方法的最后添加
+            updateTradeBoard(user.getId(), 1, rechargeAmount);    // 充值
+
             return tradeId;
 
         } catch (InterruptedException e) {
@@ -203,6 +214,7 @@ public class TradeService {
                 lock.unlock();
             }
         }
+
     }
 
     private String getChannelName(Integer channel) {
@@ -214,4 +226,89 @@ public class TradeService {
             default: return "其他";
         }
     }
+
+    @Autowired
+    private TradeBoardMapper tradeBoardMapper;
+
+    /**
+     * 更新对账统计
+     */
+    private void updateTradeBoard(Integer userId, Integer tradeType, BigDecimal amount) {
+        try {
+            // 更新日统计
+            String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            updateTradeBoardByType(userId, 1, dateStr, tradeType, amount);
+
+            // 更新月统计
+            String monthStr = new SimpleDateFormat("yyyy-MM").format(new Date());
+            updateTradeBoardByType(userId, 2, monthStr, tradeType, amount);
+
+            // 更新总统计
+            updateTradeBoardByType(userId, 3, "total", tradeType, amount);
+
+        } catch (Exception e) {
+            log.error("更新对账统计失败", e);
+            // 统计失败不影响主业务
+        }
+    }
+
+    private void updateTradeBoardByType(Integer userId, Integer dateType, String dateStr,
+                                        Integer tradeType, BigDecimal amount) {
+        TradeBoardPO board = tradeBoardMapper.selectByUserIdAndDateTypeAndDateStr(
+                userId, dateType, dateStr);
+
+        if (board == null) {
+            // 创建新记录
+            board = new TradeBoardPO();
+            board.setUserId(userId);
+            board.setDateType(dateType);
+            board.setDateStr(dateStr);
+            board.setTotalIncome("0");
+            board.setTotalExpense("0");
+            board.setRechargeAmount("0");
+            board.setWithdrawAmount("0");
+            board.setTransferInAmount("0");
+            board.setTransferOutAmount("0");
+            tradeBoardMapper.insertSelective(board);
+        }
+
+        // 计算新金额
+        BigDecimal totalIncome = new BigDecimal(board.getTotalIncome());
+        BigDecimal totalExpense = new BigDecimal(board.getTotalExpense());
+        BigDecimal rechargeAmount = new BigDecimal(board.getRechargeAmount());
+        BigDecimal withdrawAmount = new BigDecimal(board.getWithdrawAmount());
+        BigDecimal transferInAmount = new BigDecimal(board.getTransferInAmount());
+        BigDecimal transferOutAmount = new BigDecimal(board.getTransferOutAmount());
+
+        switch (tradeType) {
+            case 1: // 充值
+                totalIncome = totalIncome.add(amount);
+                rechargeAmount = rechargeAmount.add(amount);
+                break;
+            case 2: // 提现
+                totalExpense = totalExpense.add(amount);
+                withdrawAmount = withdrawAmount.add(amount);
+                break;
+            case 3: // 转账收入
+                totalIncome = totalIncome.add(amount);
+                transferInAmount = transferInAmount.add(amount);
+                break;
+            case 4: // 转账支出
+                totalExpense = totalExpense.add(amount);
+                transferOutAmount = transferOutAmount.add(amount);
+                break;
+        }
+
+        // 更新金额
+        tradeBoardMapper.updateAmounts(
+                board.getId(),
+                totalIncome.toString(),
+                totalExpense.toString(),
+                rechargeAmount.toString(),
+                withdrawAmount.toString(),
+                transferInAmount.toString(),
+                transferOutAmount.toString()
+        );
+    }
+
 }

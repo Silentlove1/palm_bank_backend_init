@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.life.bank.palm.dao.trade.mapper.TradeBoardMapper">
+
+    <select id="selectByUserIdAndDateTypeAndDateStr"
+            resultType="com.life.bank.palm.dao.trade.pojo.TradeBoardPO">
+        select * from trade_board
+        where user_id = #{userId}
+          and date_type = #{dateType}
+          and date_str = #{dateStr}
+          and is_delete = 0
+    </select>
+
+    <insert id="insertSelective" parameterType="com.life.bank.palm.dao.trade.pojo.TradeBoardPO">
+        insert into trade_board
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="dateType != null">date_type,</if>
+            <if test="dateStr != null">date_str,</if>
+            <if test="totalIncome != null">total_income,</if>
+            <if test="totalExpense != null">total_expense,</if>
+            <if test="rechargeAmount != null">recharge_amount,</if>
+            <if test="withdrawAmount != null">withdraw_amount,</if>
+            <if test="transferInAmount != null">transfer_in_amount,</if>
+            <if test="transferOutAmount != null">transfer_out_amount,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="dateType != null">#{dateType},</if>
+            <if test="dateStr != null">#{dateStr},</if>
+            <if test="totalIncome != null">#{totalIncome},</if>
+            <if test="totalExpense != null">#{totalExpense},</if>
+            <if test="rechargeAmount != null">#{rechargeAmount},</if>
+            <if test="withdrawAmount != null">#{withdrawAmount},</if>
+            <if test="transferInAmount != null">#{transferInAmount},</if>
+            <if test="transferOutAmount != null">#{transferOutAmount},</if>
+        </trim>
+    </insert>
+
+    <update id="updateAmounts">
+        update trade_board
+        set total_income = #{totalIncome},
+            total_expense = #{totalExpense},
+            recharge_amount = #{rechargeAmount},
+            withdraw_amount = #{withdrawAmount},
+            transfer_in_amount = #{transferInAmount},
+            transfer_out_amount = #{transferOutAmount}
+        where id = #{id}
+    </update>
+
+    <select id="selectByUserIdAndDateType"
+            resultType="com.life.bank.palm.dao.trade.pojo.TradeBoardPO">
+        select * from trade_board
+        where user_id = #{userId}
+          and date_type = #{dateType}
+          and is_delete = 0
+        order by date_str desc
+            limit #{limit}
+    </select>
+</mapper>

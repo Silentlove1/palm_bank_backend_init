@@ -73,3 +73,24 @@ CREATE TABLE `trade_token` (
                                UNIQUE KEY `uk_token` (`token`),
                                KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易防重表';
+
+-- 对账统计表
+CREATE TABLE `trade_board` (
+                               `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                               `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                               `date_type` tinyint(4) DEFAULT NULL COMMENT '日期类型：1-日，2-月，3-总',
+                               `date_str` varchar(32) DEFAULT NULL COMMENT '日期字符串',
+                               `total_income` varchar(32) DEFAULT '0' COMMENT '总收入',
+                               `total_expense` varchar(32) DEFAULT '0' COMMENT '总支出',
+                               `recharge_amount` varchar(32) DEFAULT '0' COMMENT '充值金额',
+                               `withdraw_amount` varchar(32) DEFAULT '0' COMMENT '提现金额',
+                               `transfer_in_amount` varchar(32) DEFAULT '0' COMMENT '转入金额',
+                               `transfer_out_amount` varchar(32) DEFAULT '0' COMMENT '转出金额',
+                               `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                               `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                               `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                               PRIMARY KEY (`id`),
+                               UNIQUE KEY `uk_user_date` (`user_id`,`date_type`,`date_str`),
+                               KEY `idx_user_id` (`user_id`),
+                               KEY `idx_date_str` (`date_str`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对账统计表';
