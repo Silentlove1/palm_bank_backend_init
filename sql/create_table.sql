@@ -94,3 +94,82 @@ CREATE TABLE `trade_board` (
                                KEY `idx_user_id` (`user_id`),
                                KEY `idx_date_str` (`date_str`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对账统计表';
+
+-- 帖子表
+CREATE TABLE `post` (
+                        `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                        `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                        `title` varchar(256) DEFAULT NULL COMMENT '标题',
+                        `content` text COMMENT '内容',
+                        `view_count` int(11) DEFAULT '0' COMMENT '浏览量',
+                        `like_count` int(11) DEFAULT '0' COMMENT '点赞数',
+                        `comment_count` int(11) DEFAULT '0' COMMENT '评论数',
+                        `collect_count` int(11) DEFAULT '0' COMMENT '收藏数',
+                        `status` tinyint(4) DEFAULT '1' COMMENT '状态：0-草稿，1-已发布，2-已删除',
+                        `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                        `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                        `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                        PRIMARY KEY (`id`),
+                        KEY `idx_user_id` (`user_id`),
+                        KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='帖子表';
+
+-- 评论表
+CREATE TABLE `comment` (
+                           `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                           `post_id` int(11) DEFAULT NULL COMMENT '帖子id',
+                           `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                           `parent_id` int(11) DEFAULT '0' COMMENT '父评论id，0表示一级评论',
+                           `content` varchar(1024) DEFAULT NULL COMMENT '评论内容',
+                           `like_count` int(11) DEFAULT '0' COMMENT '点赞数',
+                           `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                           `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                           PRIMARY KEY (`id`),
+                           KEY `idx_post_id` (`post_id`),
+                           KEY `idx_user_id` (`user_id`),
+                           KEY `idx_parent_id` (`parent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评论表';
+
+-- 点赞记录表
+CREATE TABLE `user_like` (
+                             `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                             `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                             `target_id` int(11) DEFAULT NULL COMMENT '目标id（帖子id或评论id）',
+                             `target_type` tinyint(4) DEFAULT NULL COMMENT '目标类型：1-帖子，2-评论',
+                             `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                             `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                             PRIMARY KEY (`id`),
+                             UNIQUE KEY `uk_user_target` (`user_id`,`target_id`,`target_type`),
+                             KEY `idx_target` (`target_id`,`target_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='点赞记录表';
+
+-- 收藏表
+CREATE TABLE `user_collect` (
+                                `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                                `post_id` int(11) DEFAULT NULL COMMENT '帖子id',
+                                `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                                PRIMARY KEY (`id`),
+                                UNIQUE KEY `uk_user_post` (`user_id`,`post_id`),
+                                KEY `idx_post_id` (`post_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='收藏表';
+
+-- 帖子表
+CREATE TABLE `post` (
+                        `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                        `user_id` int(11) DEFAULT NULL COMMENT '用户id',
+                        `title` varchar(256) DEFAULT NULL COMMENT '标题',
+                        `content` text COMMENT '内容',
+                        `view_count` int(11) DEFAULT '0' COMMENT '浏览量',
+                        `like_count` int(11) DEFAULT '0' COMMENT '点赞数',
+                        `comment_count` int(11) DEFAULT '0' COMMENT '评论数',
+                        `collect_count` int(11) DEFAULT '0' COMMENT '收藏数',
+                        `status` tinyint(4) DEFAULT '1' COMMENT '状态：0-草稿，1-已发布，2-已删除',
+                        `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                        `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                        `is_delete` tinyint(4) DEFAULT '0' COMMENT '逻辑删除',
+                        PRIMARY KEY (`id`),
+                        KEY `idx_user_id` (`user_id`),
+                        KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='帖子表';

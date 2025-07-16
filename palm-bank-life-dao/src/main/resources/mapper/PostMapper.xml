@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.life.bank.palm.dao.community.mapper.PostMapper">
+
+    <insert id="insertSelective" parameterType="com.life.bank.palm.dao.community.pojo.PostPO"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into post
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="status != null">status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="title != null">#{title},</if>
+            <if test="content != null">#{content},</if>
+            <if test="status != null">#{status},</if>
+        </trim>
+    </insert>
+
+    <select id="selectById" resultType="com.life.bank.palm.dao.community.pojo.PostPO">
+        select * from post
+        where id = #{id} and is_delete = 0
+    </select>
+
+    <select id="selectList" resultType="com.life.bank.palm.dao.community.pojo.PostPO">
+        select * from post
+        where is_delete = 0 and status = 1
+        order by create_time desc
+            limit #{offset}, #{limit}
+    </select>
+
+    <update id="updateViewCount">
+        update post
+        set view_count = view_count + 1
+        where id = #{id}
+    </update>
+
+    <update id="updateCounts">
+        update post
+        <set>
+            <if test="likeCount != null">like_count = #{likeCount},</if>
+            <if test="commentCount != null">comment_count = #{commentCount},</if>
+            <if test="collectCount != null">collect_count = #{collectCount},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="selectByUserId" resultType="com.life.bank.palm.dao.community.pojo.PostPO">
+        select * from post
+        where user_id = #{userId} and is_delete = 0
+        order by create_time desc
+            limit #{offset}, #{limit}
+    </select>
+</mapper>
